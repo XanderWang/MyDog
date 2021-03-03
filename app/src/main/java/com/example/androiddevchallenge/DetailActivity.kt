@@ -17,8 +17,6 @@ package com.example.androiddevchallenge
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -30,8 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -60,9 +57,9 @@ class DetailActivity : AppCompatActivity() {
 
     private lateinit var selectedDog: MyDog
     private var selectedPosition = 0
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        Log.e(TAG, "onCreate:$intent")
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         val dog = intent.getParcelableExtra<MyDog>(SELECTED_DOG)
         selectedPosition = intent.getIntExtra(SELECTED_POSITION, 0)
         if (dog == null) {
@@ -113,7 +110,7 @@ fun MyDetail(myDog: MyDog, onBack: () -> Unit) {
             )
         }
     ) {
-//        MyDetail(myDog = myDog)
+        MyDetail(myDog = myDog)
     }
 }
 
@@ -155,8 +152,9 @@ fun Avatar(avatar: String, name: String) {
             painter = image,
             contentDescription = name,
             modifier = Modifier
-                .requiredSize(150.dp)
-                .clip(shape = CircleShape),
+                .fillMaxWidth()
+                .requiredHeight(180.dp)
+                .clip(shape = RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Crop
         )
     }
