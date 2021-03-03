@@ -15,22 +15,60 @@
  */
 package com.example.androiddevchallenge
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.androiddevchallenge.model.MyDog
+import com.example.androiddevchallenge.repository.LocalMyDogSource
 import com.example.androiddevchallenge.ui.theme.MyTheme
+import com.example.androiddevchallenge.ui.theme.purple200
+import com.example.androiddevchallenge.ui.theme.purple500
+
+const val SELECTED_DOG = "selected_dog"
+const val SELECTED_POSITION = "selected_position"
+const val ADOPTED = "adopted"
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                MyApp { position, myDog ->
+                    Intent(this, DetailActivity::class.java).apply {
+                        putExtra(SELECTED_POSITION, position)
+                        putExtra(SELECTED_DOG, myDog)
+                        this@MainActivity.startActivity(this)
+                    }
+                }
             }
         }
     }
@@ -38,24 +76,83 @@ class MainActivity : AppCompatActivity() {
 
 // Start building your app here!
 @Composable
-fun MyApp() {
-    Surface(color = MaterialTheme.colors.background) {
-        Text(text = "Ready... Set... GO!")
+fun MyApp(onClick: (position: Int, myDog: MyDog) -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar({
+                Text(text = "My Dog")
+            })
+        }
+    ) {
+        DogList(myDogs = LocalMyDogSource().readData(), onClick = onClick)
+    }
+}
+
+@Composable
+fun DogList(myDogs: List<MyDog>, onClick: (position: Int, myDog: MyDog) -> Unit) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        LazyColumn(Modifier.fillMaxWidth()) {
+            itemsIndexed(myDogs) { position, myDog ->
+                MyDogCard(position, myDog, onClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun MyDogCard(position: Int, myDog: MyDog, onClick: (position: Int, myDog: MyDog) -> Unit) {
+    Card(
+        elevation = 3.dp,
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier
+            .padding(6.dp)
+            .fillMaxWidth()
+            .requiredHeight(180.dp)
+            .clickable { onClick(position, myDog) }
+    ) {
+        MyDogCardView(avatar = myDog.avatarFilename, name = myDog.name)
+    }
+}
+
+@Composable
+fun MyDogCardView(avatar: String, name: String) {
+    val imageIdentity = App.appContext.resources.getIdentifier(
+        avatar, "drawable",
+        App.appContext.packageName
+    )
+    val image: Painter = painterResource(imageIdentity)
+    Image(
+        painter = image,
+        contentDescription = name,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape = RoundedCornerShape(4.dp)),
+        contentScale = ContentScale.Crop
+    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Surface(
+            color = purple200,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = name,
+                color = purple500,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
     }
 }
 
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
 @Composable
-fun LightPreview() {
+fun MainLightPreview() {
     MyTheme {
-        MyApp()
-    }
-}
-
-@Preview("Dark Theme", widthDp = 360, heightDp = 640)
-@Composable
-fun DarkPreview() {
-    MyTheme(darkTheme = true) {
-        MyApp()
+        MyApp { position, myDog ->
+            Log.d("dd", "$position , $myDog")
+        }
     }
 }
